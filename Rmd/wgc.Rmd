@@ -52,6 +52,7 @@ kable(tt, format = 'html', longtable = F, booktabs = T,
   format.args = list(big.mark = ","),
   caption = "Table 1.  Alignment statistics.") %>%
   kable_styling(full_width=F) %>%
+  column_spec(1, bold=T) %>%
   add_header_above(c('', h1))
 ```
 
