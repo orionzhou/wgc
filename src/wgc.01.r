@@ -290,30 +290,40 @@ ta2 = ti %>% filter(tchrom == !!tchrom, tstart >!!tend) %>%
 qrys = c('Mo17', "W22", "PH207", "PHB47")
 tgt = 'B73'
 tz = tibble(qry = qrys, tgt = tgt) %>%
-    mutate(s = map2(qry, tgt, .f <- function(x,y) attach(sprintf("%s/05_stats/%s_%s.rda", dird, x, y))))
-
-tz2 = tz %>%
+    mutate(s = map2(qry, tgt, .f <- function(x,y) attach(sprintf("%s/05_stats/%s_%s.rda", dird, x, y)))) %>%
     mutate(tt = map(s, 'tt'), tv = map(s, 'tv'),
            ef1 = map(s, 'ef1'), ef2 = map(s, 'ef2'), ef3 = map(s, 'ef3'))
 
-tt = tz2 %>% select(qry, tgt, tt) %>% unnest() %>%
-    mutate(comp = sprintf("%s vs %s", qry, tgt)) %>% 
+tt = tz %>% select(qry, tgt, tt) %>% unnest() %>%
+    mutate(comp = sprintf("%s_%s", qry, tgt)) %>% 
+    select(-qry, -tgt) %>% gather(varb, num, -name, -comp) %>%
+    unite(comp_var, comp, varb) %>% spread(comp_var, num)
+tth = tibble(cname = colnames(tt)[-1]) %>%
+    separate(cname, c('qry','tgt','varname'), sep='_', remove = F) %>%
+    unite(comp, qry, tgt, remove = F) %>%
+    mutate(genome = ifelse(str_sub(varname,1,1)=='q', qry, tgt))
+ss = rle(tth$comp)
+h1 = ss$length
+names(h1) = ss$values
+ss = rle(tth$genome)
+h2 = ss$length
+names(h2) = ss$values
+
+tv = tz %>% select(qry, tgt, tv) %>% unnest() %>%
+    mutate(comp = sprintf("%s_%s", qry, tgt)) %>% 
     select(-qry, -tgt) %>% select(comp, everything())
-tv = tz2 %>% select(qry, tgt, tv) %>% unnest() %>%
-    mutate(comp = sprintf("%s vs %s", qry, tgt)) %>% 
+ef1 = tz %>% select(qry, tgt, ef1) %>% unnest() %>%
+    mutate(comp = sprintf("%s_%s", qry, tgt)) %>% 
     select(-qry, -tgt) %>% select(comp, everything())
-ef1 = tz2 %>% select(qry, tgt, ef1) %>% unnest() %>%
-    mutate(comp = sprintf("%s vs %s", qry, tgt)) %>% 
+ef2 = tz %>% select(qry, tgt, ef2) %>% unnest() %>%
+    mutate(comp = sprintf("%s_%s", qry, tgt)) %>% 
     select(-qry, -tgt) %>% select(comp, everything())
-ef2 = tz2 %>% select(qry, tgt, ef2) %>% unnest() %>%
-    mutate(comp = sprintf("%s vs %s", qry, tgt)) %>% 
-    select(-qry, -tgt) %>% select(comp, everything())
-ef3 = tz2 %>% select(qry, tgt, ef3) %>% unnest() %>%
-    mutate(comp = sprintf("%s vs %s", qry, tgt)) %>% 
+ef3 = tz %>% select(qry, tgt, ef3) %>% unnest() %>%
+    mutate(comp = sprintf("%s_%s", qry, tgt)) %>% 
     select(-qry, -tgt) %>% select(comp, everything())
 
 fo = sprintf("%s/05_stats/all.rda", dird)
-save(tt, tv, ef1, ef2, ef3, file = fo)
+save(tt, tth, h1, h2, tv, ef1, ef2, ef3, file = fo)
 #}}}
 
 

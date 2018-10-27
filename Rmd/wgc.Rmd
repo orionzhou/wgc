@@ -47,10 +47,14 @@ options(knitr.kable.NA = '')
 dirw = '~/projects/wgc/data' 
 fi = file.path(dirw, '05_stats', "all.rda")
 x = load(fi)
-kable(t(tt), format = 'markdown', longtable = F, booktabs = T,
+h1 = sequence(rle(as.character(tth$comp))$lengths)
+names(h1) = tth %>% distinct(comp) %>% pull(comp)
+kable(tt, format = 'markdown', longtable = F, booktabs = T,
+  colnames = c('', h2),
   format.args = list(big.mark = ","),
   caption = "Table 1.  Alignment statistics.") %>%
-  kable_styling(full_width=F)
+  kable_styling(full_width=F) %>%
+  add_header_above(c('', h1))
 ```
 
 \pagebreak
