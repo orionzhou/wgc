@@ -1,0 +1,65 @@
+---
+title: "Whole genome comparison of maize assemblies"
+output: github_document
+# author:
+# - name: Peng Zhou
+#  affiliation: University of Minnesota
+# - name: Nathan Springer
+#  affiliation: University of Minnesota
+# abstract: "This document provides an introduction to R Markdown, argues for its..."
+# keywords: "pandoc, r markdown, knitr"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+geometry: margin=1in
+fontfamily: mathpazo
+fontsize: 11pt
+# spacing: double
+# bibliography: ~/Dropbox/master.bib
+# biblio-style: apsr
+header-includes:
+- \usepackage{caption}
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage[table]{xcolor}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+- \usepackage{threeparttable}
+- \usepackage{threeparttablex}
+- \usepackage[normalem]{ulem}
+- \usepackage{makecell}
+- \captionsetup[figure]{labelformat=empty}
+- \captionsetup[table]{labelformat=empty}
+- \AtBeginDocument{\let\maketitle\relax}
+---
+\pagenumbering{gobble}
+
+[Mo17 vs B73](/data/07_dotplot/Mo17_B73.pdf)
+
+```{r echo = FALSE}
+require(tidyverse)
+require(knitr)
+require(kableExtra)
+options(knitr.kable.NA = '')
+dirw = '~/projects/wgc/data' 
+fi = file.path(dirw, '05_stats', "all.rda")
+x = load(fi)
+kable(tt, format = 'markdown', longtable = F, booktabs = T,
+  format.args = list(big.mark = ","),
+  caption = "Table 1.  Alignment statistics.") %>%
+  kable_styling(font_size=8)
+```
+
+\pagebreak
+```{r echo = FALSE}
+options(knitr.kable.NA = 0)
+kable(tv, format = 'markdown', booktabs = T,
+  caption = "Table 2.  Variants identified in synteny blocks.") %>%
+  kable_styling(full_width = F, font_size = 8) %>%
+  column_spec(1, bold=T) %>%
+  collapse_rows(columns = 1:2, latex_hline = "major", valign = "top", row_group_label_position = 'stack')
+```
+
