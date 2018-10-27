@@ -1,6 +1,6 @@
 ---
 title: "Whole genome comparison of maize assemblies"
-output: github_document
+output: html_document
 # author:
 # - name: Peng Zhou
 #  affiliation: University of Minnesota
@@ -47,7 +47,7 @@ options(knitr.kable.NA = '')
 dirw = '~/projects/wgc/data' 
 fi = file.path(dirw, '05_stats', "all.rda")
 x = load(fi)
-kable(tt, format = 'markdown', longtable = F, booktabs = T,
+kable(tt, format = 'html', longtable = F, booktabs = T,
   colnames = c('', h2),
   format.args = list(big.mark = ","),
   caption = "Table 1.  Alignment statistics.") %>%
@@ -58,7 +58,7 @@ kable(tt, format = 'markdown', longtable = F, booktabs = T,
 \pagebreak
 ```{r echo = FALSE}
 options(knitr.kable.NA = 0)
-kable(tv, format = 'markdown', booktabs = T,
+kable(tv, format = 'html', booktabs = T,
   caption = "Table 2.  Variants identified in synteny blocks.") %>%
   kable_styling(full_width = F, font_size = 8) %>%
   column_spec(1, bold=T) %>%
