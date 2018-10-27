@@ -41,36 +41,21 @@ October 27, 2018
 [Mo17 vs
     B73](/data/07_dotplot/Mo17_B73.pdf)
 
-    ## Warning in kable_styling(., font_size = 8): Please specify format in
+    ## Warning in kable_markdown(x = structure(c("comp", "name", "qnum", "qpct", :
+    ## The table should have a header (column names)
+
+    ## Warning in kable_styling(., full_width = F): Please specify format in
     ## kable. kableExtra can customize either HTML or LaTeX outputs. See https://
     ## haozhu233.github.io/kableExtra/ for details.
 
-| comp         | name                               |          qnum |      qpct |          tnum |      tpct |
-| :----------- | :--------------------------------- | ------------: | --------: | ------------: | --------: |
-| Mo17 vs B73  | genome space                       | 2,204,525,176 | 1.0000000 | 2,137,643,061 | 1.0000000 |
-| Mo17 vs B73  | gap-free space                     | 2,147,450,341 | 0.9741101 | 2,104,350,193 | 0.9844254 |
-| Mo17 vs B73  | genic space                        |   153,036,520 | 0.0694193 |   131,211,146 | 0.0613812 |
-| Mo17 vs B73  | genic space in synteny             |   122,783,148 | 0.8023127 |   103,009,874 | 0.7850695 |
-| Mo17 vs B73  | total genes                        |        38,620 | 1.0000000 |        46,117 | 1.0000000 |
-| Mo17 vs B73  | genes w. \>=75% covered in synteny |        30,673 | 0.7942258 |        36,156 | 0.7840059 |
-| W22 vs B73   | genome space                       | 2,133,882,028 | 1.0000000 | 2,137,643,061 | 1.0000000 |
-| W22 vs B73   | gap-free space                     | 2,093,255,169 | 0.9809611 | 2,104,350,193 | 0.9844254 |
-| W22 vs B73   | genic space                        |   172,942,719 | 0.0810461 |   131,211,146 | 0.0613812 |
-| W22 vs B73   | genic space in synteny             |   134,103,890 | 0.7754237 |   103,468,957 | 0.7885684 |
-| W22 vs B73   | total genes                        |        40,690 | 1.0000000 |        46,117 | 1.0000000 |
-| W22 vs B73   | genes w. \>=75% covered in synteny |        31,870 | 0.7832391 |        36,308 | 0.7873019 |
-| PH207 vs B73 | genome space                       | 2,372,587,326 | 1.0000000 | 2,137,643,061 | 1.0000000 |
-| PH207 vs B73 | gap-free space                     | 1,714,072,453 | 0.7224486 | 2,104,350,193 | 0.9844254 |
-| PH207 vs B73 | genic space                        |   243,071,285 | 0.1024499 |   131,211,146 | 0.0613812 |
-| PH207 vs B73 | genic space in synteny             |   152,879,810 | 0.6289505 |    98,855,667 | 0.7534091 |
-| PH207 vs B73 | total genes                        |        40,557 | 1.0000000 |        46,117 | 1.0000000 |
-| PH207 vs B73 | genes w. \>=75% covered in synteny |        28,803 | 0.7101857 |        33,669 | 0.7300778 |
-| PHB47 vs B73 | genome space                       | 2,164,788,649 | 1.0000000 | 2,137,643,061 | 1.0000000 |
-| PHB47 vs B73 | gap-free space                     | 2,126,513,527 | 0.9823192 | 2,104,350,193 | 0.9844254 |
-| PHB47 vs B73 | genic space                        |   152,772,596 | 0.0705716 |   131,211,146 | 0.0613812 |
-| PHB47 vs B73 | genic space in synteny             |   127,329,112 | 0.8334552 |   104,936,362 | 0.7997519 |
-| PHB47 vs B73 | total genes                        |        36,988 | 1.0000000 |        46,117 | 1.0000000 |
-| PHB47 vs B73 | genes w. \>=75% covered in synteny |        30,270 | 0.8183735 |        36,829 | 0.7985992 |
+|      |              |                |             |                        |             |                                    |              |                |             |                        |             |                                    |              |                |              |                        |              |                                    |              |                |              |                        |              |                                    |
+| :--- | :----------- | :------------- | :---------- | :--------------------- | :---------- | :--------------------------------- | :----------- | :------------- | :---------- | :--------------------- | :---------- | :--------------------------------- | :----------- | :------------- | :----------- | :--------------------- | :----------- | :--------------------------------- | :----------- | :------------- | :----------- | :--------------------- | :----------- | :--------------------------------- |
+| comp | Mo17 vs B73  | Mo17 vs B73    | Mo17 vs B73 | Mo17 vs B73            | Mo17 vs B73 | Mo17 vs B73                        | W22 vs B73   | W22 vs B73     | W22 vs B73  | W22 vs B73             | W22 vs B73  | W22 vs B73                         | PH207 vs B73 | PH207 vs B73   | PH207 vs B73 | PH207 vs B73           | PH207 vs B73 | PH207 vs B73                       | PHB47 vs B73 | PHB47 vs B73   | PHB47 vs B73 | PHB47 vs B73           | PHB47 vs B73 | PHB47 vs B73                       |
+| name | genome space | gap-free space | genic space | genic space in synteny | total genes | genes w. \>=75% covered in synteny | genome space | gap-free space | genic space | genic space in synteny | total genes | genes w. \>=75% covered in synteny | genome space | gap-free space | genic space  | genic space in synteny | total genes  | genes w. \>=75% covered in synteny | genome space | gap-free space | genic space  | genic space in synteny | total genes  | genes w. \>=75% covered in synteny |
+| qnum | 2204525176   | 2147450341     | 153036520   | 122783148              | 38620       | 30673                              | 2133882028   | 2093255169     | 172942719   | 134103890              | 40690       | 31870                              | 2372587326   | 1714072453     | 243071285    | 152879810              | 40557        | 28803                              | 2164788649   | 2126513527     | 152772596    | 127329112              | 36988        | 30270                              |
+| qpct | 1.00000000   | 0.97411015     | 0.06941927  | 0.80231273             | 1.00000000  | 0.79422579                         | 1.00000000   | 0.98096106     | 0.08104605  | 0.77542374             | 1.00000000  | 0.78323913                         | 1.00000000   | 0.72244863     | 0.10244988   | 0.62895052             | 1.00000000   | 0.71018566                         | 1.00000000   | 0.98231923     | 0.07057160   | 0.83345518             | 1.00000000   | 0.81837353                         |
+| tnum | 2137643061   | 2104350193     | 131211146   | 103009874              | 46117       | 36156                              | 2137643061   | 2104350193     | 131211146   | 103468957              | 46117       | 36308                              | 2137643061   | 2104350193     | 131211146    | 98855667               | 46117        | 33669                              | 2137643061   | 2104350193     | 131211146    | 104936362              | 46117        | 36829                              |
+| tpct | 1.00000000   | 0.98442543     | 0.06138122  | 0.78506954             | 1.00000000  | 0.78400590                         | 1.00000000   | 0.98442543     | 0.06138122  | 0.78856835             | 1.00000000  | 0.78730186                         | 1.00000000   | 0.98442543     | 0.06138122   | 0.75340907             | 1.00000000   | 0.73007785                         | 1.00000000   | 0.98442543     | 0.06138122   | 0.79975189             | 1.00000000   | 0.79859922                         |
 
     ## Warning in kable_styling(., full_width = F, font_size = 8): Please specify
     ## format in kable. kableExtra can customize either HTML or LaTeX outputs. See
