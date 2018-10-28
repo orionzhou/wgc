@@ -323,6 +323,7 @@ tth = tibble(cname = colnames(tt)[-1]) %>%
     separate(comp, c('qry','tgt'), sep='_', remove = F) %>%
     mutate(genome = ifelse(str_sub(vname,1,1)=='q', qry, tgt))
 ss = rle(tth$genome)
+tt_h0 = c('', rep(c('#', '%'),8))
 tt_h1 = ss$length
 names(tt_h1) = ss$values
 ss = rle(str_replace(tth$comp, '_', ' vs '))
@@ -389,7 +390,7 @@ names(ef_h2) = ss$values
 #}}}
 
 fo = sprintf("%s/05_stats/all.rda", dird)
-save(tt, tt_h1, tt_h2,
+save(tt, tt_h0, tt_h1, tt_h2,
      tv, tv_h0, tv_h1,
      ef, ef_h0, ef_h1, ef_h2, file = fo)
 #}}}

@@ -37,7 +37,13 @@ header-includes:
 ---
 \pagenumbering{gobble}
 
-[Mo17 vs B73](/data/07_dotplot/Mo17_B73.pdf)
+- whole genome synteny plots
+  - [Mo17 vs B73](/data/07_dotplot/Mo17_B73.pdf)
+  - [W22 vs B73](/data/07_dotplot/W22_B73.pdf)
+  - [PH207 vs B73](/data/07_dotplot/PH207_B73.pdf)
+  - [PHB47 vs B73](/data/07_dotplot/PHB47_B73.pdf)
+
+- Table 1.  Whole genome alignment statistics.
 
 ```{r echo = FALSE}
 require(tidyverse)
@@ -49,7 +55,7 @@ fi = file.path(dirw, '05_stats', "all.rda")
 x = load(fi)
 kable(tt, format = 'latex', booktabs = T, 
     align = c('l',rep('r',ncol(tt)-1)),
-    col.names = rep('', ncol(tt))) %>%
+    col.names = tt_h0) %>%
     #caption = "Table 1.  Alignment statistics.") %>%
   column_spec(1, bold=T) %>%#, width_min='7cm') %>%
   kable_styling(latex_options = c('striped','scale_down')) %>%
@@ -57,6 +63,8 @@ kable(tt, format = 'latex', booktabs = T,
   add_header_above(c('', tt_h2)) %>%
   kable_as_image('t1')
 ```
+
+- Table 2.  Summary of variants called by synteny comparison.
 
 ```{r echo = FALSE}
 kable(tv, format = 'latex', booktabs = T, 
@@ -69,6 +77,8 @@ kable(tv, format = 'latex', booktabs = T,
   collapse_rows(columns = 1, latex_hline = 'major', valign = 'top') %>%
   kable_as_image('t2')
 ```
+
+- Table 3.  Summary of variant effects on syntenic genes.
 
 ```{r echo = FALSE}
 kable(ef, format = 'latex', booktabs = T,
