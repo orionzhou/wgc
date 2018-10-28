@@ -1,6 +1,6 @@
 ---
 title: "Whole genome comparison of maize assemblies"
-output: html_document
+output: rmarkdown::github_document
 # author:
 # - name: Peng Zhou
 #  affiliation: University of Minnesota
@@ -47,24 +47,39 @@ options(knitr.kable.NA = '')
 dirw = '~/projects/wgc/data' 
 fi = file.path(dirw, '05_stats', "all.rda")
 x = load(fi)
-kable(tt, format = 'html', longtable = F, booktabs = T,
-  col.names = rep('', ncol(tt)),
-  format.args = list(big.mark = ","),
-  caption = "Table 1.  Alignment statistics.") %>%
-  kable_styling(full_width=F) %>%
-  column_spec(1, bold=T) %>%
-  add_header_above(c('', h2)) %>%
-  add_header_above(c('', h1)) %>%
-  scroll_box(width = "100%")
+kable(tt, format = 'latex', booktabs = T, 
+    align = c('l',rep('r',ncol(tt)-1)),
+    col.names = rep('', ncol(tt))) %>%
+    #caption = "Table 1.  Alignment statistics.") %>%
+  column_spec(1, bold=T) %>%#, width_min='7cm') %>%
+  kable_styling(latex_options = c('striped','scale_down')) %>%
+  add_header_above(c('', tt_h1)) %>%
+  add_header_above(c('', tt_h2)) %>%
+  kable_as_image('t1')
 ```
 
-\pagebreak
 ```{r echo = FALSE}
-options(knitr.kable.NA = 0)
-kable(tv, format = 'html', booktabs = T,
-  caption = "Table 2.  Variants identified in synteny blocks.") %>%
-  kable_styling(full_width = F, font_size = 8) %>%
+kable(tv, format = 'latex', booktabs = T, 
+    align = c(rep('l',2),rep('r',ncol(tv)-2)),
+    col.names = tv_h0) %>%
   column_spec(1, bold=T) %>%
-  collapse_rows(columns = 1:2, latex_hline = "major", valign = "top", row_group_label_position = 'stack')
+  #column_spec(2, width_min='2.2cm') %>%
+  kable_styling(latex_options = c('striped','scale_down')) %>%
+  add_header_above(c(rep('',2),tv_h1)) %>%
+  collapse_rows(columns = 1, latex_hline = 'major', valign = 'top') %>%
+  kable_as_image('t2')
 ```
+
+```{r echo = FALSE}
+kable(ef, format = 'latex', booktabs = T,
+    align = c(rep('l',2),rep('r',ncol(ef)-3)),
+    col.names = ef_h0) %>%
+  column_spec(1, bold=T, width_min='1cm') %>%
+  kable_styling(latex_options = c('striped','scale_down')) %>%
+  add_header_above(c(rep('',2),ef_h1)) %>%
+  add_header_above(c(rep('',2),ef_h2)) %>%
+  collapse_rows(columns = 1, latex_hline = 'major', valign = 'top') %>%
+  kable_as_image('t3')
+```
+
 
