@@ -1,4 +1,4 @@
-# whole genome comparison results
+# whole genome pairwise comparison 
 
 This repository hosts codes and results for pairwise whole genome comparison between any two genome (moslty maize) assemblies. 
 
