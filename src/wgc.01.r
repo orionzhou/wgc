@@ -35,31 +35,6 @@ qcfg$gr_gene = with(qcfg$gene, GRanges(seqnames = chrom, ranges = IRanges(start,
 tcfg$gr_gene = with(tcfg$gene, GRanges(seqnames = chrom, ranges = IRanges(start, end)))
 #}}}
 
-#{{{ #raw chain QC stats 
-fi = file.path(diri, '05.bed')
-ti = read_tsv(fi, col_names = c('tchrom','tstart','tend','srd','qchrom','qstart','qend','cid','mm'))
-ti = ti %>% mutate(alnlen = tend - tstart)
-tc = ti %>% group_by(cid) %>%
-    summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend), 
-              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend), 
-              srd=srd[1], 
-              alnlen = sum(alnlen), block = n(), mm = sum(mm)) %>%
-    ungroup()
-
-tc %>% mutate(pm = mm/size*100) %>%
-    mutate(size_bin = cut(alnlen, 
-                          breaks = c(0, 1e4, 5e4, 1e5, 1e6, 1e7, Inf),
-                          labels = c('<10Kb', '10-100Kb', '100-500Kb',
-                                     '0.5-1Mb', '1-10Mb', '10Mb+'))) %>%
-    group_by(size_bin) %>%
-    summarise(nchain = n(), alnlen = sum(alnlen),
-              block = sum(block), mm = sum(mm),
-              pm.mean = mm/size*100,
-              pm.q25 = quantile(pm, .25),
-              pm.q50 = quantile(pm, .5),
-              pm.q75 = quantile(pm, .75)) %>% ungroup()
-#}}}
-
 fi = file.path(diri, '10.bed')
 ti = read_tsv(fi, col_names = c('tchrom','tstart','tend','srd','qchrom','qstart','qend','cid','mm'))
 tc = ti %>% mutate(alnlen = tend - tstart) %>%
@@ -199,7 +174,6 @@ sum_vnteff <- function(ef, gsyn, syns = c('syntenic', 'non-syntenic'),
     ef4 = gsyn %>% select(gid,ttype,po) %>%
         mutate(syn = ifelse(po>=.75, 'syntenic', 'non-syntenic')) %>%
         left_join(ef3, by = 'gid') %>%
-        count(syn, impact, eff) %>%
         mutate(impact = as.character(impact)) %>%
         mutate(impact = ifelse(is.na(impact), 'no_change', impact)) %>%
         mutate(syn = factor(syn, levels = syns)) %>%
@@ -209,14 +183,16 @@ sum_vnteff <- function(ef, gsyn, syns = c('syntenic', 'non-syntenic'),
     #}}}
 }
 #
-et0 = sum_vnteff(et, gt) 
+etr = sum_vnteff(et, gt) 
+et0 = etr %>% count(syn, impact, eff)
 et1 = et0 %>% group_by(syn) %>%
     summarise(tnum = sum(n)) %>% ungroup() %>% mutate(tpct = tnum/sum(tnum))
 et2 = et0 %>% group_by(syn, impact) %>%
     summarise(tnum = sum(n)) %>% ungroup() %>% mutate(tpct = tnum/sum(tnum))
 et3 = et0 %>% group_by(syn, impact, eff) %>%
     summarise(tnum = sum(n)) %>% ungroup() %>% mutate(tpct = tnum/sum(tnum))
-eq0 = sum_vnteff(eq, gq) 
+eqr = sum_vnteff(eq, gq) 
+eq0 = eqr %>% count(syn, impact, eff)
 eq1 = eq0 %>% group_by(syn) %>%
     summarise(qnum = sum(n)) %>% ungroup() %>% mutate(qpct = qnum/sum(qnum))
 eq2 = eq0 %>% group_by(syn, impact) %>%
@@ -227,6 +203,10 @@ eq3 = eq0 %>% group_by(syn, impact, eff) %>%
 ef1 = et1 %>% left_join(eq1, by = 'syn') 
 ef2 = et2 %>% left_join(eq2, by = c('syn','impact'))
 ef3 = et3 %>% left_join(eq3, by = c('syn','impact','eff'))
+fo1 = sprintf("%s/05_stats/10.%s_%s.tsv", dird, qry, tgt)
+write_tsv(eqr, fo1)
+fo2 = sprintf("%s/05_stats/10.%s_%s.tsv", dird, tgt, qry)
+write_tsv(etr, fo2)
 #}}}
 
 fo = sprintf("%s/05_stats/%s_%s.rda", dird, qry, tgt)
@@ -274,6 +254,31 @@ p = ggplot(tp) +
     otheme(xtext = T, ytext = T, xticks = T, yticks = T)
 fp = sprintf("%s/07_dotplot/%s_%s.pdf", dird, qry, tgt)
 ggsave(p, filename = fp, width = 8, height = 8)
+#}}}
+
+#{{{ #raw chain QC stats 
+fi = file.path(diri, '05.bed')
+ti = read_tsv(fi, col_names = c('tchrom','tstart','tend','srd','qchrom','qstart','qend','cid','mm'))
+ti = ti %>% mutate(alnlen = tend - tstart)
+tc = ti %>% group_by(cid) %>%
+    summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend), 
+              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend), 
+              srd=srd[1], 
+              alnlen = sum(alnlen), block = n(), mm = sum(mm)) %>%
+    ungroup()
+
+tc %>% mutate(pm = mm/size*100) %>%
+    mutate(size_bin = cut(alnlen, 
+                          breaks = c(0, 1e4, 5e4, 1e5, 1e6, 1e7, Inf),
+                          labels = c('<10Kb', '10-100Kb', '100-500Kb',
+                                     '0.5-1Mb', '1-10Mb', '10Mb+'))) %>%
+    group_by(size_bin) %>%
+    summarise(nchain = n(), alnlen = sum(alnlen),
+              block = sum(block), mm = sum(mm),
+              pm.mean = mm/size*100,
+              pm.q25 = quantile(pm, .25),
+              pm.q50 = quantile(pm, .5),
+              pm.q75 = quantile(pm, .75)) %>% ungroup()
 #}}}
 
 #{{{ translocation
@@ -393,6 +398,33 @@ fo = sprintf("%s/05_stats/all.rda", dird)
 save(tt, tt_h0, tt_h1, tt_h2,
      tv, tv_h0, tv_h1,
      ef, ef_h0, ef_h1, ef_h2, file = fo)
+#}}}
+
+#{{{ save to gene lookup table 10.gene.eff.tsv
+qrys = c('Mo17', "W22", "PH207", "PHB47")
+tgts = rep('B73', 4)
+tz = tibble(qry = c(qrys,tgts), tgt = c(tgts,qrys)) %>%
+    mutate(s = map2(qry, tgt, .f <- function(x,y) read_tsv(sprintf("%s/05_stats/10.%s_%s.tsv", dird, x, y)))) %>%
+    unnest()
+
+tp = tz %>% mutate(impact = ifelse(syn == 'syntenic', impact, syn)) %>%
+    select(qry, tgt, gid, ttype, tid, impact, eff)
+tp %>% count(qry,tgt,impact) %>% print(n=24)
+fo = file.path(dird, '05_stats/10.gene.eff.tsv')
+write_tsv(tp, fo)
+#}}}
+
+#{{{ pan-genome analysis
+fi = file.path(dird, '05_stats/10.gene.eff.tsv')
+ti = read_tsv(fi)
+
+tp = ti %>% filter(qry == 'B73') %>%
+    count(gid,impact) %>%
+    spread(impact,n) %>%
+    gather(impact,ngenome, -gid) %>%
+    replace_na(list(ngenome=0)) %>%
+    count(impact, ngenome) %>%
+    spread(ngenome, n)
 #}}}
 
 
