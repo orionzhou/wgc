@@ -2,17 +2,17 @@ source('wgc.fun.r')
 source('Location.R')
 require(GenomicRanges)
 
+qry = 'PHB47'
 qry = 'W22'
 qry = 'Mo17'
 qry = 'PH207'
-qry = 'PHB47'
 tgt = 'B73'
 diri = sprintf("%s/raw_output/%s_%s", dird, qry, tgt)
 #{{{ read genome config
-if(qry %in% search()) detach(qry, character.only = T)
-if(tgt %in% search()) detach(tgt, character.only = T)
-qcfg = attach(file.path(dirg, qry, '55.rda'), name = qry)
-tcfg = attach(file.path(dirg, tgt, '55.rda'), name = tgt)
+x = load(file.path(dirg, qry, '55.rda'))
+qcfg = env(bed.chrom=bed.chrom,bed.gap=bed.gap,loc.gene=loc.gene)
+y = load(file.path(dirg, tgt, '55.rda'))
+tcfg = env(bed.chrom=bed.chrom,bed.gap=bed.gap,loc.gene=loc.gene)
 qcfg$cmap = qcfg$bed.chrom %>% 
     mutate(cs = c(0,cumsum(end-start+1)[-length(chrom)])) %>%
     mutate(gstart = start + cs, gend = end + cs) %>%
@@ -208,7 +208,7 @@ write_tsv(eqr, fo1)
 fo2 = sprintf("%s/05_stats/10.%s_%s.tsv", dird, tgt, qry)
 write_tsv(etr, fo2)
 #}}}
-
+#
 fo = sprintf("%s/05_stats/%s_%s.rda", dird, qry, tgt)
 save(tt, tv, ef1, ef2, ef3, file = fo) 
 
@@ -361,7 +361,7 @@ names(tv_h1) = ss$values
 #}}}
 
 #{{{ ef
-vnames = tz$ef3[[1]] %>% 
+vnames = tz %>% select(ef3) %>% unnest() %>%
     filter(syn == 'syntenic') %>% select(-syn) %>% replace_na(list(eff='')) %>%
     distinct(impact, eff) %>% 
     unite(name, impact, eff, sep = '|') %>% pull(name)
