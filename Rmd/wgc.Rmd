@@ -84,6 +84,12 @@ kable(tv, format = 'latex', booktabs = T,
   kable_as_image('t2')
 ```
 
+- plot of synteny content and variant density
+  - [Mo17 vs B73](/data/11_vnt_density/05.Mo17.pdf)
+  - [W22 vs B73](/data/11_vnt_density/05.W22.pdf)
+  - [PH207 vs B73](/data/11_vnt_density/05.PH207.pdf)
+  - [PHB47 vs B73](/data/11_vnt_density/05.PHB47.pdf)
+
 - Table 3.  Summary of variant effects on syntenic genes.
 
 ```{r echo = FALSE}
@@ -97,5 +103,4 @@ kable(ef, format = 'latex', booktabs = T,
   collapse_rows(columns = 1, latex_hline = 'major', valign = 'top') %>%
   kable_as_image('t3')
 ```
-
 

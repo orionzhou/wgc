@@ -363,7 +363,8 @@ names(tv_h1) = ss$values
 #{{{ ef
 vnames = tz %>% select(ef3) %>% unnest() %>%
     filter(syn == 'syntenic') %>% select(-syn) %>% replace_na(list(eff='')) %>%
-    distinct(impact, eff) %>% 
+    distinct(impact, eff) %>%
+    arrange(impact, eff) %>%
     unite(name, impact, eff, sep = '|') %>% pull(name)
 ef = tz %>% select(qry, tgt, ef3) %>% unnest() %>%
     filter(syn == 'syntenic') %>% select(-syn) %>% replace_na(list(eff='')) %>%

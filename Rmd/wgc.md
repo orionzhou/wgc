@@ -1,6 +1,6 @@
 Whole genome comparison of maize assemblies
 ================
-November 05, 2018
+November 06, 2018
 
 
 
@@ -63,6 +63,11 @@ November 05, 2018
 
 ![](t2.png)<!-- -->
 
+  - plot of synteny content and variant density
+      - [Mo17 vs B73](/data/11_vnt_density/05.Mo17.pdf)
+      - [W22 vs B73](/data/11_vnt_density/05.W22.pdf)
+      - [PH207 vs B73](/data/11_vnt_density/05.PH207.pdf)
+      - [PHB47 vs B73](/data/11_vnt_density/05.PHB47.pdf)
   - Table 3. Summary of variant effects on syntenic genes.
 
 ![](t3.png)<!-- -->
