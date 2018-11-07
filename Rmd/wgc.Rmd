@@ -1,6 +1,6 @@
 ---
 title: "Whole genome comparison of maize assemblies"
-output: rmarkdown::github_document
+output: pdf_document
 # author:
 # - name: Peng Zhou
 #  affiliation: University of Minnesota
@@ -66,8 +66,7 @@ kable(tt, format = 'latex', booktabs = T,
   column_spec(1, bold=T) %>%#, width_min='7cm') %>%
   kable_styling(latex_options = c('striped','scale_down')) %>%
   add_header_above(c('', tt_h1)) %>%
-  add_header_above(c('', tt_h2)) %>%
-  kable_as_image('t1')
+  add_header_above(c('', tt_h2))
 ```
 
 - Table 2.  Summary of variants called by synteny comparison.
@@ -80,8 +79,7 @@ kable(tv, format = 'latex', booktabs = T,
   #column_spec(2, width_min='2.2cm') %>%
   kable_styling(latex_options = c('striped','scale_down')) %>%
   add_header_above(c(rep('',2),tv_h1)) %>%
-  collapse_rows(columns = 1, latex_hline = 'major', valign = 'top') %>%
-  kable_as_image('t2')
+  collapse_rows(columns = 1, latex_hline = 'major', valign = 'top')
 ```
 
 - plot of synteny content and variant density
@@ -100,7 +98,6 @@ kable(ef, format = 'latex', booktabs = T,
   kable_styling(latex_options = c('striped','scale_down')) %>%
   add_header_above(c(rep('',2),ef_h1)) %>%
   add_header_above(c(rep('',2),ef_h2)) %>%
-  collapse_rows(columns = 1, latex_hline = 'major', valign = 'top') %>%
-  kable_as_image('t3')
+  collapse_rows(columns = 1, latex_hline = 'major', valign = 'top')
 ```
 
