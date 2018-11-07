@@ -51,6 +51,7 @@ header-includes:
   - [PHB47 vs B73](/data/07_dotplot/PHB47_B73.pdf)
 
 - Table 1.  Whole genome alignment statistics.
+
 ```{r echo = FALSE}
 require(tidyverse)
 require(knitr)
