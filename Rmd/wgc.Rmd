@@ -1,6 +1,7 @@
 ---
 title: "Whole genome comparison of maize assemblies"
 output: pdf_document
+classoption: landscape
 # author:
 # - name: Peng Zhou
 #  affiliation: University of Minnesota
@@ -50,7 +51,6 @@ header-includes:
   - [PHB47 vs B73](/data/07_dotplot/PHB47_B73.pdf)
 
 - Table 1.  Whole genome alignment statistics.
-
 ```{r echo = FALSE}
 require(tidyverse)
 require(knitr)
@@ -100,4 +100,3 @@ kable(ef, format = 'latex', booktabs = T,
   add_header_above(c(rep('',2),ef_h2)) %>%
   collapse_rows(columns = 1, latex_hline = 'major', valign = 'top')
 ```
-
