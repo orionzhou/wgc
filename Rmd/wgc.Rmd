@@ -2,6 +2,7 @@
 title: "Whole genome comparison of maize assemblies"
 output: pdf_document
 classoption: landscape
+urlcolor: blue
 # author:
 # - name: Peng Zhou
 #  affiliation: University of Minnesota
@@ -17,6 +18,8 @@ fontsize: 11pt
 # bibliography: ~/Dropbox/master.bib
 # biblio-style: apsr
 header-includes:
+- \usepackage {hyperref}
+- \hypersetup {colorlinks = true, linkcolor = blue, urlcolor = blue}
 - \usepackage{caption}
 - \usepackage{booktabs}
 - \usepackage{longtable}
@@ -45,10 +48,10 @@ header-includes:
   - [snpEff](http://snpeff.sourceforge.net) was used to evaluate variant effects on sytenic genes
 
 - whole genome synteny plots
-  - [Mo17 vs B73](/data/07_dotplot/Mo17_B73.pdf)
-  - [W22 vs B73](/data/07_dotplot/W22_B73.pdf)
-  - [PH207 vs B73](/data/07_dotplot/PH207_B73.pdf)
-  - [PHB47 vs B73](/data/07_dotplot/PHB47_B73.pdf)
+  - [Mo17 vs B73](https://github.com/orionzhou/wgc/tree/master/data/07_dotplot/Mo17_B73.pdf)
+  - [W22 vs B73](https://github.com/orionzhou/wgc/tree/master/data/07_dotplot/W22_B73.pdf)
+  - [PH207 vs B73](https://github.com/orionzhou/wgc/tree/master/data/07_dotplot/PH207_B73.pdf)
+  - [PHB47 vs B73](https://github.com/orionzhou/wgc/tree/master/data/07_dotplot/PHB47_B73.pdf)
 
 - Table 1.  Whole genome alignment statistics.
 
@@ -84,10 +87,10 @@ kable(tv, format = 'latex', booktabs = T,
 ```
 
 - plot of synteny content and variant density
-  - [Mo17 vs B73](/data/11_vnt_density/05.Mo17.pdf)
-  - [W22 vs B73](/data/11_vnt_density/05.W22.pdf)
-  - [PH207 vs B73](/data/11_vnt_density/05.PH207.pdf)
-  - [PHB47 vs B73](/data/11_vnt_density/05.PHB47.pdf)
+  - [Mo17 vs B73](https://github.com/orionzhou/wgc/tree/master/data/11_vnt_density/05.Mo17.pdf)
+  - [W22 vs B73](https://github.com/orionzhou/wgc/tree/master/data/11_vnt_density/05.W22.pdf)
+  - [PH207 vs B73](https://github.com/orionzhou/wgc/tree/master/data/11_vnt_density/05.PH207.pdf)
+  - [PHB47 vs B73](https://github.com/orionzhou/wgc/tree/master/data/11_vnt_density/05.PHB47.pdf)
 
 - Table 3.  Summary of variant effects on syntenic genes.
 
