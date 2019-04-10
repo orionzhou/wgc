@@ -1,23 +1,27 @@
-source('wgc.fun.r')
-source('Location.R')
+source('functions.R')
 require(GenomicRanges)
 
 qry = 'PHB47'
 qry = 'W22'
 qry = 'Mo17'
 qry = 'PH207'
+qry = 'Sbicolor'
 tgt = 'B73'
 diri = sprintf("%s/raw_output/%s_%s", dird, qry, tgt)
 #{{{ read genome config
-x = load(file.path(dirg, qry, '55.rda'))
-qcfg = env(bed.chrom=bed.chrom,bed.gap=bed.gap,loc.gene=loc.gene)
-y = load(file.path(dirg, tgt, '55.rda'))
-tcfg = env(bed.chrom=bed.chrom,bed.gap=bed.gap,loc.gene=loc.gene)
-qcfg$cmap = qcfg$bed.chrom %>% 
+f_qry = file.path(genome_dir(qry), '55.rds')
+qcfg = readRDS(f_qry)
+qcfg$bed.chrom = qcfg$chrom
+qcfg$bed.gap = qcfg$gap
+f_tgt = file.path(genome_dir(tgt), '55.rds')
+tcfg = readRDS(f_tgt)
+tcfg$bed.chrom = tcfg$chrom
+tcfg$bed.gap = tcfg$gap
+qcfg$cmap = qcfg$bed.chrom %>%
     mutate(cs = c(0,cumsum(end-start+1)[-length(chrom)])) %>%
     mutate(gstart = start + cs, gend = end + cs) %>%
     select(chrom, gstart, gend)
-tcfg$cmap = tcfg$bed.chrom %>% 
+tcfg$cmap = tcfg$bed.chrom %>%
     mutate(cs = c(0,cumsum(end-start+1)[-length(chrom)])) %>%
     mutate(gstart = start + cs, gend = end + cs) %>%
     select(chrom, gstart, gend)
@@ -39,14 +43,14 @@ fi = file.path(diri, '10.bed')
 ti = read_tsv(fi, col_names = c('tchrom','tstart','tend','srd','qchrom','qstart','qend','cid','mm'))
 tc = ti %>% mutate(alnlen = tend - tstart) %>%
     group_by(cid) %>%
-    summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend), 
-              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend), 
+    summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend),
+              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend),
               srd=srd[1], alnlen = sum(alnlen), block = n(), mm = sum(mm))
 #
 #{{{ aln stats & genic coverge stats
-t.gr_aln = with(ti, GRanges(seqnames=tchrom, ranges=IRanges(tstart+1, tend))) 
-q.gr_aln = with(ti, GRanges(seqnames=qchrom, ranges=IRanges(qstart+1, qend))) 
-t.gr_chn = with(tc, GRanges(seqnames=tchrom, ranges=IRanges(tstart+1, tend))) 
+t.gr_aln = with(ti, GRanges(seqnames=tchrom, ranges=IRanges(tstart+1, tend)))
+q.gr_aln = with(ti, GRanges(seqnames=qchrom, ranges=IRanges(qstart+1, qend)))
+t.gr_chn = with(tc, GRanges(seqnames=tchrom, ranges=IRanges(tstart+1, tend)))
 q.gr_chn = with(tc, GRanges(seqnames=qchrom, ranges=IRanges(qstart+1, qend)))
 t.gr_gene_aln = intersect(tcfg$gr_gene, t.gr_aln)
 q.gr_gene_aln = intersect(qcfg$gr_gene, q.gr_aln)
@@ -210,14 +214,14 @@ write_tsv(etr, fo2)
 #}}}
 #
 fo = sprintf("%s/05_stats/%s_%s.rda", dird, qry, tgt)
-save(tt, tv, ef1, ef2, ef3, file = fo) 
+save(tt, tv, ef1, ef2, ef3, file = fo)
 
 #{{{ whole genome pairwise alignment dotplot
 max_dist = 5000
-ta = ti %>% arrange(cid, tchrom, tstart) 
-ta1 = ta[-nrow(ta),] %>% 
+ta = ti %>% arrange(cid, tchrom, tstart)
+ta1 = ta[-nrow(ta),] %>%
     transmute(cid1 = cid, srd = srd, ts1 = tstart, te1 = tend, qs1 = qstart, qe1 = qend)
-ta2 = ta[-1,] %>% 
+ta2 = ta[-1,] %>%
     transmute(cid2 = cid, ts2 = tstart, te2 = tend, qs2 = qstart, qe2 = qend)
 ta3 = ta1 %>% bind_cols(ta2) %>%
     mutate(tdist = ts2 - te1,
@@ -226,13 +230,13 @@ ta3 = ta1 %>% bind_cols(ta2) %>%
                   ifelse(tdist+qdist >= max_dist, 1, 0), 1)) %>%
     mutate(bcid = cumsum(flag))
 ta = ta %>% mutate(bcid = c(1,1+ta3$bcid))
-tc = ta %>% mutate(alnlen = tend - tstart) %>% 
+tc = ta %>% mutate(alnlen = tend - tstart) %>%
     group_by(bcid) %>%
     summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend), srd=srd[1],
-              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend), 
+              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend),
               alnlen = sum(alnlen))
 tc
-describe(tc$alnlen)
+summary(tc$alnlen)
 #
 tp = tc %>% group_by(bcid) %>%
     inner_join(tcfg$cmap, by = c('tchrom'='chrom')) %>%

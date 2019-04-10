@@ -26,17 +26,17 @@ if(ncol(ti) == 8) {
 }
 tc = ti %>% mutate(alnlen = tend - tstart) %>%
     group_by(cid) %>%
-    summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend), 
-              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend), 
+    summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend),
+              qchrom=qchrom[1], qstart=min(qstart), qend=max(qend),
               srd=srd[1], alnlen = sum(alnlen), block = n())
 
-ta = ti %>% arrange(cid, tchrom, tstart) 
-ta1 = ta[-nrow(ta),] %>% 
+ta = ti %>% arrange(cid, tchrom, tstart)
+ta1 = ta[-nrow(ta),] %>%
     transmute(cid1 = cid, tchrom = tchrom, qchrom = qchrom, srd = srd, ts1 = tstart, te1 = tend, qs1 = qstart, qe1 = qend)
-ta2 = ta[-1,] %>% 
+ta2 = ta[-1,] %>%
     transmute(cid2 = cid, ts2 = tstart, te2 = tend, qs2 = qstart, qe2 = qend)
 ta3 = ta1 %>% bind_cols(ta2) %>%
-    filter(cid1 == cid2) 
+    filter(cid1 == cid2)
 stopifnot(nrow(ta3) + nrow(tc) == nrow(ta))
 ta4 = ta3 %>% mutate(cid = cid1) %>% select(-cid1,-cid2) %>%
     mutate(tstart = te1, tend = ts2,
@@ -46,7 +46,7 @@ ta4 = ta3 %>% mutate(cid = cid1) %>% select(-cid1,-cid2) %>%
     select(tchrom, tstart, tend, srd, qchrom, qstart, qend, cid, td, qd)
 
 tp1 = ti %>% mutate(type = 'aln')
-tp2 = ta4 %>% filter(td + qd <= maxsize) %>% 
+tp2 = ta4 %>% filter(td + qd <= maxsize) %>%
     select(-td, -qd) %>% mutate(type = 'indel')
 tp = tp1 %>% bind_rows(tp2) %>% arrange(tchrom, tstart, tend)
 

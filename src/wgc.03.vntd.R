@@ -1,6 +1,4 @@
-source('wgc.fun.r')
-source('Location.R')
-require(GenomicRanges)
+source('functions.R')
 
 #{{{ window-based synteny bases & variant density
 qrys = c('Mo17', "W22", "PH207", "PHB47")
@@ -70,5 +68,35 @@ p = ggplot(tp1) +
            xtext = T, xticks = T)
 fp = sprintf("%s/05.%s.pdf", dirw, qry)
 ggsave(p, filename = fp, width = 10, height = 8)
+#}}}
+
+#{{{ pete's 100-bp tiles synteny & variant stats
+qrys = c('Mo17', "PH207")
+tgt = 'B73'
+comps = sprintf("%s_%s", qrys, tgt)
+
+comp = comps[2]
+dirw = '~/projects/wgc/data/91_pete_tile'
+f1 = sprintf("%s/15.%s.syn.bed", dirw, comp)
+f2 = sprintf("%s/16.%s.snp.bed", dirw, comp)
+f3 = sprintf("%s/17.%s.idl.bed", dirw, comp)
+t1 = read_tsv(f1, col_names=c('chrom','start','end','id','score','phase',
+                              'c2','s2','e2','srd','c3','s3','e3','cid','nsnp',
+                              'bp'))
+t2 = read_tsv(f2, col_names=c('chrom','start','end','id','score','phase','n'))
+t3 = read_tsv(f3, col_names=c('chrom','start','end','id','score','phase','n'))
+#
+tp = t1 %>% group_by(chrom,start,end,id) %>%
+    summarise(bp_syn=sum(bp)) %>% ungroup() %>%
+    mutate(size = end-start) %>%
+    select(chrom,start,end,id, size, bp_syn) %>%
+    left_join(t2, by=c('chrom','start','end','id')) %>%
+    select(-score,-phase) %>% rename(n_snp=n) %>%
+    left_join(t3, by=c('chrom','start','end','id')) %>%
+    select(-score,-phase) %>% rename(n_indel=n)
+
+fo = sprintf("%s/20.%s.bed", dirw, comp)
+write_tsv(tp, fo, col_names=F)
+# liftOver -bedPlus=3 old chain new unmap
 #}}}
 

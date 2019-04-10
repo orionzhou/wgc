@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 suppressPackageStartupMessages(require(argparse))
-suppressPackageStartupMessages(require(tidyverse))
 suppressPackageStartupMessages(require(BBmisc))
 
 parser <- ArgumentParser(description = 'Split BED file into N pieces with equal total size then extract fasta')
@@ -25,10 +24,11 @@ if( file.access(fi) == -1 )
 if( !dir.exists(outdir) )
     dir.create(outdir, showWarnings = T, recursive = T)
 
+source("~/projects/wgc/src/functions.R")
 ti = read_tsv(fi, col_names = F, col_types = 'cii') %>%
     transmute(chrom = X1, start = X2, end = X3)
 
-tp = ti %>% 
+tp = ti %>%
     mutate(size = end - start,
            tchrom = sprintf("%s-%d-%d", chrom, start+1, end),
            tstart = 0, tend = size, srd = '+',
@@ -44,7 +44,7 @@ to = tp %>% select(tchrom, tstart, tend, srd, chrom, start, end, cid)
 #to = tp %>% select(chrom, start, end, srd, tchrom, tstart, tend, cid)
 write_tsv(to, chainbed, col_names = F)
 
-cmd = sprintf("chain fromBed %s %s %s > %s", chainbed, bedsize, dbsize, chain)
+cmd = sprintf("chain.py fromBed %s %s %s > %s", chainbed, bedsize, dbsize, chain)
 system(cmd)
 system(sprintf("rm %s %s", chainbed, bedsize))
 
@@ -54,7 +54,7 @@ for (i in 1:n) {
         select(chrom, start, end)
     write_tsv(to, bed, col_names = F)
     fo = sprintf("%s/part.%d.fna", outdir, i)
-    cmd = sprintf("fasta extract %s %s > %s", db, bed, fo)
+    cmd = sprintf("fasta.py extract %s %s > %s", db, bed, fo)
     system(cmd)
 }
 system(sprintf("rm %s", bed))
