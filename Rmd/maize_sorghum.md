@@ -9,4 +9,4 @@ Coding sequence data for primary transcripts of each annotated gene in the genom
 
 * [Whole genome dotplot](../data/21_Sbicolor_B73/01.pdf)
 * [Fractionation of the two maize subgenomes](../data/21_Sbicolor_B73/04.retained.maize.pdf)
-* [list of maize genes in the two subgenomes]
+* [list of maize genes in the two subgenomes](../data/21_Sbicolor_B73/10.maize.subgenome.tsv)
