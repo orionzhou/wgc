@@ -1,0 +1,78 @@
+---
+title: "July's Figures"
+output: pdf_document
+urlcolor: blue
+# author:
+# - name: Peng Zhou
+#  affiliation: University of Minnesota
+# - name: Nathan Springer
+#  affiliation: University of Minnesota
+# abstract: "This document provides an introduction to R Markdown, argues for its..."
+# keywords: "pandoc, r markdown, knitr"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+geometry: margin=1in
+fontfamily: mathpazo
+fontsize: 11pt
+# spacing: double
+# bibliography: ~/Dropbox/master.bib
+# biblio-style: apsr
+header-includes:
+- \usepackage {hyperref}
+- \hypersetup {colorlinks = true, linkcolor = blue, urlcolor = blue}
+- \usepackage{caption}
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage[table]{xcolor}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+- \usepackage{threeparttable}
+- \usepackage{threeparttablex}
+- \usepackage[normalem]{ulem}
+- \usepackage{makecell}
+- \captionsetup[figure]{labelformat=empty}
+- \captionsetup[table]{labelformat=empty}
+- \AtBeginDocument{\let\maketitle\relax}
+---
+\pagenumbering{gobble}
+
+```{r echo = FALSE, message=FALSE}
+require(tidyverse)
+require(lubridate)
+require(ggsci)
+dirr = '~/git/luffy/r'
+source(file.path(dirr, 'plot.R'))
+require(knitr)
+require(kableExtra)
+options(knitr.kable.NA = '')
+ta = tibble(date1 = ymd('2018-11-3') + 0:6, Freq = c(5,5,0,1,0,1,1)) %>%
+    mutate(Date = sprintf("%s %s", month(date1, label=T), mday(date1))) %>%
+    select(Date, Freq)
+```
+
+![](july1.pdf){width=80%}
+
+Figure 1.  
+
+\pagebreak
+
+Table 1. Behavioral observation.
+```{r echo = FALSE}
+kable(ta, format = 'latex', booktabs = T, 
+    align = c('c',rep('c',ncol(ta)-1)),
+    col.names = c("Date", "Frequency of Angrey (How Often)")) %>%
+  #column_spec(1, bold=T) %>%#, width_min='7cm') %>%
+  kable_styling(latex_options = c('striped'), position = 'left')
+```
+
+\pagebreak
+
+![](july2.pdf){width=100%}
+
+Figure 2.
+
+
