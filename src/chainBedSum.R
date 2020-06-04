@@ -3,18 +3,13 @@ suppressPackageStartupMessages(require(argparse))
 suppressPackageStartupMessages(require(tidyverse))
 suppressPackageStartupMessages(require(BBmisc))
 
-parser <- ArgumentParser(description = 'wgc5 chain post processing')
+parser <- ArgumentParser(description = 'chain BED summary')
 parser$add_argument("fi", nargs=1, help="input chain BED")
-parser$add_argument("fo", nargs=1, help="output chain BED")
-parser$add_argument("fvi", nargs=1, help="input variant BED")
-parser$add_argument("fvo", nargs=1, help="output variant BED")
-parser$add_argument("--minsize", type="integer", default=50000,
-                    help="output chain [default: %(default)s]")
+parser$add_argument("fo", nargs=1, help="output summary tsv")
 args <- parser$parse_args()
 
 fi = args$fi
 fo = args$fo
-minsize = args$minsize
 if( file.access(fi) == -1 )
     stop(sprintf("Input file ( %s ) cannot be accessed", fi))
 
@@ -32,16 +27,13 @@ tis = ti %>% mutate(alnlen = tend - tstart) %>%
     summarise(tchrom=tchrom[1], tstart=min(tstart), tend=max(tend),
               qchrom=qchrom[1], qstart=min(qstart), qend=max(qend),
               srd=srd[1],
-              alnlen = sum(alnlen), block = n()) %>%
-    filter(alnlen >= minsize)
-to = ti %>% filter(cid %in% tis$cid)
+              tsize = tend-tstart, qsize = qend - qstart,
+              alnlen = sum(alnlen), n_block = n(), mismatch = sum(mm)) %>%
+    ungroup() %>%
+    mutate(tstart = tstart + 1, qstart = qstart + 1)
 
-cat(sprintf("%d out of %d chains passed filtering\n", nrow(tis), length(ti$cid)))
-write_tsv(to, fo, col_names = F)
+cat(sprintf("%d chains read\n", nrow(tis)))
+to = tis
+write_tsv(to, fo, col_names = T)
 
-fvi = args$fvi
-fvo = args$fvo
-tv = read_tsv(fvi, col_names = F) %>%
-    filter(X8 %in% tis$cid)
-write_tsv(tv, fvo, col_names = F)
 
