@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 suppressPackageStartupMessages(require(argparse))
 suppressPackageStartupMessages(require(tidyverse))
-suppressPackageStartupMessages(require(BBmisc))
 
 parser <- ArgumentParser(description = 'chain BED summary')
 parser$add_argument("fi", nargs=1, help="input chain BED")
