@@ -1,5 +1,5 @@
 source('functions.R')
-dirw = file.path(dird, '91_genome_bins')
+dirw = glue('{dird}/91_genome_bins')
 #{{{ functions
 sum_liftover <- function(f_map, f_snp, max_indel=1e5) {
     #{{{
@@ -81,13 +81,13 @@ sum_gene_itv <- function(fb, fg, min_fraction=.3) {
     tb
     #}}}
 }
-gts = tibble(gt0 = c('B73','Mo17','W22','PH207'), gt=c('B','M','W','P')) %>%
+gts = tibble(gt0 = c('B73','Mo17','W22','PH207','Oh43'), gt=c('B','M','W','P','O')) %>%
     mutate(gt0 = str_c("Zmays", gt0, sep='_'))
-comps = tibble(tgt = c(rep("B", 3)), qry = c('M','W','P'))
+comps = tibble(tgt = "B", qry = c('M','W','P','O'))
 #}}}
 
 #{{{ create 100-bp tiles
-for (i in gts) {
+for (i in 5) {
 gt0 = gts$gt0[i]; gt = gts$gt[i]
 cfg = read_genome_conf(gt0)
 tw = cfg$chrom %>% mutate(start=1) %>% select(chrom, start, end=size) %>%
@@ -107,21 +107,23 @@ write_tsv(to, fo, col_names=F)
 #}}}
 
 #{{{ read lifted bins & SNPs
-for (i in 1:nrow(comps)) {
+for (i in c(3)) {
 #tgt='B'; qry='W'
 tgt = comps$tgt[i]; qry = comps$qry[i]
-f_map = sprintf("%s/%sto%s/11.map.bed", dirw, tgt, qry)
-f_snp = sprintf("%s/%sto%s/12.snp.bed", dirw, tgt, qry)
+f_map = glue("{dirw}/{tgt}to{qry}/11.map.bed")
+f_snp = glue("{dirw}/{tgt}to{qry}/12.snp.bed")
 tm = sum_liftover(f_map, f_snp)
-fo = sprintf("%s/%sto%s/20.rds", dirw, tgt, qry)
+fo = glue("{dirw}/{tgt}to{qry}/20.rds")
 saveRDS(tm, fo)
+fo = glue("{dirw}/{tgt}to{qry}/20.tsv.gz")
+write_tsv(tm, fo, na='')
 #
 x = tm %>% mutate(n_block=ifelse(!is.na(ins) & !is.na(del) & (n_ins+n_del>4 | ins+del>100), 0, n_block))
 x %>% count(n_block)
 to = x %>% filter(n_block>0) %>% select(chrom2,beg2,end2,bin) %>%
     arrange(chrom2, beg2)
-fo = sprintf("%s/%sto%s/20.bed.gz", dirw, tgt, qry)
-write_tsv(to, fo, col_names=F)
+fo = glue("{dirw}/{tgt}to{qry}/21.bed.gz")
+write_tsv(to, fo, col_names=F, na='')
 }
 #}}}
 
