@@ -1,7 +1,7 @@
 #{{{
 source('functions.R')
-tgt = 'B73'
-qry = 'W22'
+tgt = 'Zmays_B73'
+qry = 'Zmays_Ky21'
 gconf1 = read_genome_conf(qry)
 gconf2 = read_genome_conf(tgt)
 #
@@ -12,12 +12,12 @@ tz2 = flattern_gcoord_prepare(size2, gap=0)
 #
 fl1 = sprintf("%s/50_annotation/15.bed", genome_dir(qry))
 fl2 = sprintf("%s/50_annotation/15.bed", genome_dir(tgt))
-tl1 = gconf1$loc.gene %>% filter(ttype=='mRNA',etype=='exon') %>%
+tl1 = gconf1$gene.loc %>% filter(ttype=='mRNA',etype=='exon') %>%
     arrange(gid, chrom, start, end) %>% group_by(gid,tid) %>%
     summarise(chrom=chrom[1], pos=(start[1]+end[n()])/2) %>% ungroup() %>%
     arrange(chrom,pos) %>% mutate(idx=1:n()) %>%
     group_by(chrom) %>% mutate(cidx=1:n()) %>% ungroup()
-tl2 = gconf2$loc.gene %>% filter(ttype=='mRNA',etype=='exon') %>%
+tl2 = gconf2$gene.loc %>% filter(ttype=='mRNA',etype=='exon') %>%
     arrange(gid, chrom, start, end) %>% group_by(gid,tid) %>%
     summarise(chrom=chrom[1], pos=(start[1]+end[n()])/2) %>% ungroup() %>%
     arrange(chrom,pos) %>% mutate(idx=1:n()) %>%
@@ -33,7 +33,7 @@ dirw = sprintf('%s/21_%s_%s', dird, qry, tgt)
 if (!file.exists(dirw)) dir.create(dirw)
 
 #{{{ dotplot
-fi = file.path(diri, '05.pairs')
+fi = '~/tt.tsv'
 ti = read_tsv(fi) %>%
     inner_join(tl1, by=c('gid1'='tid')) %>% select(-pos) %>%
     rename(tid1=gid1, gid1=gid, chrom1=chrom, idx1=idx) %>%
@@ -62,51 +62,3 @@ p1 = ggplot(tp) +
 ggsave(p1, filename=fp, width=wd, height=ht)
 #}}}
 
-fs1 = file.path(diri, 'q.t.last.filtered')
-ts1 = read_tsv(fs1, col_names = blast_cols12)
-fs2 = file.path(diri, 'q.t.rbh')
-ts2 = read_tsv(fs2, col_names=c('qseqid','sseqid','pident'))
-
-fp = file.path(diri, '05.pairs')
-tp = read_tsv(fp)
-tp %>% count(gid1) %>% count(n)
-tp %>% count(gid2) %>% count(n)
-gid1r = ti$tid1[!tj$tid1 %in% tp$gid1]
-gid2r = ti$tid2[!ti$tid2 %in% tp$gid2]
-
-t_rbh = ts1 %>% filter(qseqid %in% gid1r, sseqid %in% gid2r)
-length(unique(t_rbh$qseqid))
-length(unique(t_rbh$sseqid))
-
-
-blast_cols12=c('qseqid','sseqid','pident','length','mismatch','gapopen','qstart','qend','sstart','send','evalue','bitscore')
-fs = file.path(diri, 'q.t.last')
-t_sim = read_tsv(fs, col_names=blast_cols12) %>%
-    select(qseqid, sseqid, pident, evalue, score=bitscore)
-
-fi = file.path(diri, '07.t.ortholog')
-ti = read_tsv(fi, col_names=c('tid2','tid1')) %>%
-    mutate(rbh=str_detect(tid1, "\\'$")) %>%
-    mutate(tid1 = str_remove(tid1, "\\'$")) %>%
-    mutate(type2 = ifelse(tid1 == '.', 'lost1', ifelse(rbh, 'rbh', 'synteny')))
-ti %>% count(rbh,type2)
-
-fj = file.path(diri, '07.q.ortholog')
-tj = read_tsv(fj, col_names=c('tid1','tid2')) %>%
-    mutate(rbh=str_detect(tid2, "\\'$")) %>%
-    mutate(tid2 = str_remove(tid2, "\\'$")) %>%
-    mutate(type1 = ifelse(tid2 == '.', 'lost2', ifelse(rbh, 'rbh', 'synteny')))
-tj %>% count(rbh,type1)
-
-tj2 = tj %>% select(tid1,tid2b=tid2,type1)
-to = ti %>% full_join(tj2, by='tid1') %>%
-    replace_na(list(tid2='.', type1='lost1', type2='lost2')) #%>%
-    #left_join(t_sim, by=c('tid1'='qseqid','tid2'='sseqid'))
-
-to %>% count(type1,type2)
-#to %>% count(type1,type2,is.na(score))
-
-ti2 = ti %>% select(tid2,tid1b=tid1,type2)
-to = tj %>% full_join(ti2, by='tid2') %>%
-    replace_na(list(tid1='.', type1='lost1', type2='lost2'))
-to %>% count(type1,type2)
