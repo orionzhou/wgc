@@ -10,7 +10,7 @@ qry = 'Atauschii_AY61'
 gconf1 = read_genome_conf(qry)
 gconf2 = read_genome_conf(tgt)
 
-#{{{
+#{{{ make a pairwise dotplot
 fl1 = sprintf("%s/50_annotation/15.bed", genome_dir(qry))
 fl2 = sprintf("%s/50_annotation/15.bed", genome_dir(tgt))
 tl1 = gconf1$gene.loc %>% filter(ttype=='mRNA',etype=='exon') %>%
@@ -62,7 +62,7 @@ p1 = ggplot(tp) +
 ggsave(p1, filename=fp, width=wd, height=ht)
 #}}}
 
-#{{{
+#{{{ make a one-to-one synteny plot
 size1 = gconf1$chrom %>% select(chrom, size)
 size2 = gconf2$chrom %>% select(chrom, size)
 tz1 = flattern_gcoord_prepare(size1, gap=5e7)
