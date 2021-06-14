@@ -3,10 +3,15 @@ require(glue)
 require(ggsci)
 source("/datalus/weiyu/git/rmaize/R/genome.R")
 source("/datalus/weiyu/git/rmaize/R/plot.R")
+dirw = '~/projects/wgc/data/31_wheat_synteny'
 
 tgt = 'Taestivum_D'
-qry = 'Atauschii_AS60'
 qry = 'Atauschii_AY61'
+qry = 'Atauschii_AS60'
+qry = 'Atauschii_T093'
+qry = 'Atauschii_XJ02'
+qry = 'Atauschii'
+qry = 'Atauschii_AY17'
 gconf1 = read_genome_conf(qry)
 gconf2 = read_genome_conf(tgt)
 
@@ -25,7 +30,6 @@ tl2 = gconf2$gene.loc %>% filter(ttype=='mRNA',etype=='exon') %>%
     group_by(chrom) %>% mutate(cidx=1:n()) %>% ungroup()
 #}}}
 #
-dirw = '~/projects/wgc/data/31_wheat_synteny'
 #{{{ dotplot
 tz1 = tl1 %>% group_by(chrom) %>%
     summarise(start=min(idx), end=max(idx), pos=(start+end)/2) %>% ungroup()
