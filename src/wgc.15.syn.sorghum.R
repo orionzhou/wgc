@@ -1,26 +1,27 @@
-#{{{
 source('functions.R')
-qry = 'Mo17'
-qry = 'Sbicolor'
-tgt = 'B73'
-gconf1 = read_genome_conf(qry)
-gconf2 = read_genome_conf(tgt)
+qry = 'Zmays_B73v5'
+tgt = 'Sbicolor'
+subdir = 'common'
+diri = glue('~/projects/s3/zhoup-wgc/raw/{subdir}/{qry}-{tgt}')
+fi = glue("{diri}/xref.pairs")
+dirw = glue('~/projects/s3/zhoup-wgc/21_{qry}-{tgt}')
+#{{{ prepare data
+gconf1 = read_genome_conf(qry, dirg=dirg)
+gconf2 = read_genome_conf(tgt, dirg=dirg)
 #
 size1 = gconf1$chrom %>% select(chrom,size=end)
 size2 = gconf2$chrom %>% select(chrom,size=end)
 tz1 = flattern_gcoord_prepare(size1, gap=0)
 tz2 = flattern_gcoord_prepare(size2, gap=0)
 #
-fl1 = sprintf("%s/50_annotation/15.bed", genome_dir(qry))
-fl2 = sprintf("%s/50_annotation/15.bed", genome_dir(tgt))
-tl1 = gconf1$gene %>% filter(ttype=='mRNA') %>%
+tl1 = gconf1$gene.loc %>% filter(ttype=='mRNA',etype=='exon') %>%
     arrange(gid, chrom, start, end) %>% group_by(gid,tid) %>%
-    mutate(pos=(start+end)/2) %>%
+    summarise(chrom=chrom[1], pos=(start[1]+end[n()])/2) %>% ungroup() %>%
     arrange(chrom,pos) %>% mutate(idx=1:n()) %>%
     group_by(chrom) %>% mutate(cidx=1:n()) %>% ungroup()
-tl2 = gconf2$gene %>% filter(ttype=='mRNA') %>%
+tl2 = gconf2$gene.loc %>% filter(ttype=='mRNA',etype=='exon') %>%
     arrange(gid, chrom, start, end) %>% group_by(gid,tid) %>%
-    mutate(pos=(start+end)/2) %>%
+    summarise(chrom=chrom[1], pos=(start[1]+end[n()])/2) %>% ungroup() %>%
     arrange(chrom,pos) %>% mutate(idx=1:n()) %>%
     group_by(chrom) %>% mutate(cidx=1:n()) %>% ungroup()
 #
@@ -29,37 +30,31 @@ tz1 = tl1 %>% group_by(chrom) %>%
 tz2 = tl2 %>% group_by(chrom) %>%
     summarise(start=min(idx), end=max(idx), pos=(start+end)/2) %>% ungroup()
 #}}}
-diri = sprintf('%s/raw/%s_%s/20_synteny', dird, qry, tgt)
-dirw = sprintf('%s/21_%s_%s', dird, qry, tgt)
-if (!file.exists(dirw)) dir.create(dirw)
-
 
 #{{{ dotplot
-fi = file.path(diri, '05.pairs')
 ti = read_tsv(fi) %>%
     inner_join(tl1, by=c('gid1'='tid')) %>% select(-pos) %>%
     rename(tid1=gid1, gid1=gid, chrom1=chrom, idx1=idx) %>%
     inner_join(tl2, by=c('gid2'='tid')) %>% select(-pos) %>%
     rename(tid2=gid2, gid2=gid, chrom2=chrom, idx2=idx) %>%
     arrange(bid, idx1)
-fi = file.path(diri, '06.q.blocks')
-#tm = tj %>% inner_join(tl1, by=c('gid1'='gid')) %>% mutate(idx=cidx)
-tm = read_tsv(fi,col_names=c('gid1','gid2a','gid2b')) %>%
-    inner_join(tl1, by=c('gid1'='tid')) %>% mutate(idx=cidx)
-fi = file.path(diri, '06.q.blocks.tracks')
-tb = read_tsv(fi, col_names='bids') %>%
+fm = glue('{diri}/xref.t.blocks')
+tm = read_tsv(fm,col_names=c('gid1','gid2a','gid2b')) %>%
+    inner_join(tl2, by=c('gid1'='tid')) %>% mutate(idx=cidx)
+fb = glue('{diri}/xref.t.blocks.tracks')
+tb = read_tsv(fb, col_names='bids') %>%
     mutate(ftype=sprintf('maize%d', 1:n())) %>%
     mutate(bid = str_split(bids, ',')) %>%
     select(-bids) %>% unnest() %>%
-    mutate(bid = sprintf("b%02d", as.numeric(bid)+1))
+    mutate(bid = sprintf("b%03d", as.numeric(bid)+1))
 
 tp = ti %>%
     #group_by(bid) %>%
     #summarise(idx1s = idx1[1], idx1e = idx1[n()],
     #          idx2s = idx2[1], idx2e = idx2[n()]) %>% ungroup() %>%
     left_join(tb, by='bid') %>% replace_na(list(ftype='unused'))
-fp = sprintf("%s/01.pdf", dirw)
-wd=8; ht=8
+fp = glue("{dirw}/05.dotplot.2x1.pdf")
+wd=9; ht=6
 p1 = ggplot(tp) +
   #geom_segment(aes(x=idx1s,xend=idx1e, y=idx2s,yend=idx2e,color=ftype), size=.6) +
   geom_point(aes(x=idx1,y=idx2,color=ftype), size=.1) +
@@ -73,7 +68,7 @@ p1 = ggplot(tp) +
 ggsave(p1, filename=fp, width=wd, height=ht)
 #}}}
 
-#{{{ sorghum-maize fractionation plot
+#{{{ # sorghum-maize fractionation plot
 diff_frac <- function(chr, idxb, idxe, tm) {
     #{{{
     tm %>% filter(chrom == chr, idx >= idxb, idx <= idxe) %>%
@@ -166,31 +161,35 @@ ggsave(p1, filename=fp, width=8, height=8)
 #}}}
 
 #{{{ create maize subgenome gene ID list
-tid2gid = tl2$gid; names(tid2gid) = tl2$tid
-to = tm %>% select(sorghum=gid1, maize1=gid2a, maize2=gid2b) %>%
+tid2gid = tl1$gid; names(tid2gid) = tl1$tid
+to1 = tm %>% select(sorghum=gid1, maize1=gid2a, maize2=gid2b) %>%
     mutate(maize1= ifelse(maize1 == '.', '.', tid2gid[maize1])) %>%
     mutate(maize2= ifelse(maize2 == '.', '.', tid2gid[maize2])) %>%
     mutate(ftype = ifelse(maize1=='.' & maize2=='.', 'non-syntenic', 'syntenic')) %>%
     mutate(ftype = ifelse(maize1!='.', 'maize1-retained', ftype)) %>%
     mutate(ftype = ifelse(maize2!='.', 'maize2-retained', ftype)) %>%
     mutate(ftype = ifelse(maize1!='.' & maize2!='.', 'both-retained', ftype))
-to %>% count(ftype)
+to1 %>% count(ftype)
 
-fo = file.path(dirw, '10.maize.pairs.tsv')
-write_tsv(to, fo)
+fo = glue('{dirw}/09.sorghum.to.maize.tsv')
+write_tsv(to1, fo)
 
-to = tm %>% select(gid1, subgenome1=gid2a, subgenome2=gid2b) %>%
-    filter(subgenome1 != '.' | subgenome2 != '.') %>%
-    mutate(ftype=ifelse(subgenome1=='.'|subgenome2=='.', 'fractionated', 'retained')) %>%
-    gather(subgenome, gid, -gid1, -ftype) %>% filter(gid != '.') %>%
-    distinct(gid, ftype, subgenome) %>%
-    mutate(ftype=sprintf("%s_%s", subgenome, ftype)) %>%
-    rename(tid=gid) %>% inner_join(tl2, by='tid') %>%
-    select(gid, ftype)
+ftypes=c('both-retained','maize1-retained','maize2-retained','non-syntenic')
+to2 = to1 %>% filter(maize1 != '.' | maize2 != '.') %>% select(-sorghum) %>%
+    gather(subgenome, gid, -ftype) %>%
+    filter(gid != '.') %>% distinct(subgenome, ftype, gid) %>%
+    mutate(sub2 = str_replace(ftype, '-retained', '')) %>%
+    filter(sub2=='both' | sub2==subgenome) %>%
+    distinct(gid, ftype) %>%
+    right_join(tl1 %>% select(gid), by='gid') %>%
+    replace_na(list(ftype='non-syntenic')) %>%
+    mutate(ftype = factor(ftype, levels=ftypes)) %>% arrange(ftype, gid) 
+to2 %>% count(ftype)
 
-fo = file.path(dirw, '10.maize.subgenome.tsv')
-write_tsv(to, fo)
+fo = glue('{dirw}/10.maize.subgenome.tsv')
+write_tsv(to2, fo)
 #}}}
+
 
 ti2 = ti %>% group_by(bid) %>%
     summarise(chrom1 = chrom1[1], chrom2 = chrom2[1],

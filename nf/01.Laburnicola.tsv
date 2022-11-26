@@ -1,0 +1,11 @@
+qry	tgt	minimap2	syntelog
+R22	R11		T
+R44	R11		T
+R11	R44		T
+R22	R44		T
+R11	R19		T
+R22	R19		T
+R11	R8		T
+R44	R8		T
+R11xR22	R19		T
+R11xR44	R8		T

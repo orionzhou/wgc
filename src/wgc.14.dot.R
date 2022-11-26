@@ -1,7 +1,11 @@
-#{{{
 source('functions.R')
-tgt = 'Zmays_B73'
-qry = 'Zmays_Ky21'
+qry='Alyrata'; tgt='Athaliana_Col0'
+subdir = 'common'
+diri = glue('~/projects/s3/zhoup-wgc/raw/{subdir}/{qry}-{tgt}')
+fi = glue("{diri}/xref.pairs")
+fp = glue("{diri}/05.dotplot.pdf")
+
+#{{{
 gconf1 = read_genome_conf(qry)
 gconf2 = read_genome_conf(tgt)
 #
@@ -10,8 +14,8 @@ size2 = gconf2$chrom %>% select(chrom,size=end)
 tz1 = flattern_gcoord_prepare(size1, gap=0)
 tz2 = flattern_gcoord_prepare(size2, gap=0)
 #
-fl1 = sprintf("%s/50_annotation/15.bed", genome_dir(qry))
-fl2 = sprintf("%s/50_annotation/15.bed", genome_dir(tgt))
+#fl1 = sprintf("%s/50_annotation/15.bed", genome_dir(qry))
+#fl2 = sprintf("%s/50_annotation/15.bed", genome_dir(tgt))
 tl1 = gconf1$gene.loc %>% filter(ttype=='mRNA',etype=='exon') %>%
     arrange(gid, chrom, start, end) %>% group_by(gid,tid) %>%
     summarise(chrom=chrom[1], pos=(start[1]+end[n()])/2) %>% ungroup() %>%
@@ -28,12 +32,8 @@ tz1 = tl1 %>% group_by(chrom) %>%
 tz2 = tl2 %>% group_by(chrom) %>%
     summarise(start=min(idx), end=max(idx), pos=(start+end)/2) %>% ungroup()
 #}}}
-diri = sprintf('%s/raw_output/%s_%s/20_synteny', dird, qry, tgt)
-dirw = sprintf('%s/21_%s_%s', dird, qry, tgt)
-if (!file.exists(dirw)) dir.create(dirw)
 
 #{{{ dotplot
-fi = '~/tt.tsv'
 ti = read_tsv(fi) %>%
     inner_join(tl1, by=c('gid1'='tid')) %>% select(-pos) %>%
     rename(tid1=gid1, gid1=gid, chrom1=chrom, idx1=idx) %>%
@@ -46,7 +46,6 @@ bids18 = ti %>% count(bid) %>% arrange(desc(n)) %>%
 tp = ti %>% mutate(bid = ifelse(bid %in% bids18, bid, 'other')) %>%
     mutate(bid = factor(bid, levels=c(bids18,'other')))
 cols19 = c(pal_igv()(18), 'black')
-fp = sprintf("%s/01.pdf", dirw)
 wd=6; ht=6
 p1 = ggplot(tp) +
   #geom_segment(aes(x=idx1s,xend=idx1e, y=idx2s,yend=idx2e,color=ftype), size=.6) +
@@ -58,7 +57,7 @@ p1 = ggplot(tp) +
   #scale_color_brewer(palette = "Set1") +
   scale_color_manual(name = 'synteny block', values=cols19) +
   otheme(xtitle=T, ytitle=T, xtext=T, ytext=T, xtick=T, ytick=T,
-         legend.pos='bottom.right', legend.dir='v', legend.title=T)
+         legend.pos='none', legend.dir='v', legend.title=T)
 ggsave(p1, filename=fp, width=wd, height=ht)
 #}}}
 
