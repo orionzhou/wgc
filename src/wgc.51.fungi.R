@@ -1,21 +1,25 @@
 source("functions.R")
-dirw = glue('{dird}/51_fungi')
-diri = glue("{dirr}/Laburnicola")
+diri = glue("{dird}/Laburnicola")
+dirw = glue('{dird}/25_Laburnicola')
 
-gs=c('R11','R22','R44','R19','R8')
+gts = c('R11','R22','R44','R19','R8')
+gs = c('R11','R22','R44','R19','R11xR22','R8','R11xR44')
+tg = tibble(g=gs) %>% mutate(g = factor(g, levels=gs)) %>%
+    mutate(conf = map(g, read_genome_conf, subdir="Laburnicola"))
+t_gs = tg %>% mutate(t_gs = map(conf, "gene")) %>% unnest(t_gs) %>% select(-conf)
 cmps = tibble(
   qry=c('R11','R22','R22','R11xR22','R11xR44'),
   tgt=c('R44','R44','R11','R19',    'R8')
-)
+) %>% mutate(cmp = glue("{qry} - {tgt}")) %>% mutate(cmp = as_factor(cmp))
 
 #{{{ plot ancestral karyotype / subgenome 
-tg = tibble(g=gs) %>% mutate(fa = glue("{diri}/{g}.anc")) %>%
+tg = tibble(g=gts) %>% mutate(fa = glue("{diri}/{g}.anc")) %>%
     mutate(ta = map(fa, read_tsv, col_names=c("chrom","start","end","anc",'sub'))) %>%
     select(-fa) %>%
     unnest(ta) %>% mutate(span = end-start+1) %>%
     mutate(hap = ifelse(g %in% c("R8","R19"), glue("{g}_{LETTERS[sub]}"), g))
 thap = tg %>% distinct(g, hap) %>% mutate(g = factor(g, levels=gs)) %>%
-    arrange(g, hap)
+    arrange(g, hap) %>% mutate(hap = as_factor(hap))
 haps = thap %>% pull(hap)
 tg = tg %>% mutate(hap = factor(hap, levels=haps))
 tgs = tg %>% group_by(g,chrom,sub) %>% summarize(span=sum(span)) %>% ungroup() %>%
@@ -51,6 +55,7 @@ ty2 = ty %>% distinct(achrom,i) %>% arrange(achrom, i) %>% mutate(y = 1:n())
 ty = ty %>% inner_join(ty2, by=c('achrom','i')) %>% select(hap,achrom,i,y,chrom,g)
 
 cols21 = c(pal_igv()(18), pal_aaas()(10)[c(10,3,5)])
+cols21 = c(pal_ucscgb()(18), pal_igv()(18)[c(8,15,17)])
 tys = ty %>% filter(i==1)
 tp = tg %>% select(-hap) %>% inner_join(tga, by='anc') %>%
     inner_join(ty %>% select(-achrom), by=c('g','chrom')) %>%
@@ -70,9 +75,15 @@ fo = glue("{dirw}/08.karyotype.pdf")
 ggsave(p, filename=fo, width=12, height=6)
 #}}}
 
+#{{{ collect block/gene pair and write
 ti = cmps %>%
     mutate(fi= glue("{diri}/{qry}-{tgt}/wgdi/20.rds")) %>%
-    mutate(r = map(fi, readRDS))
+    mutate(r = map(fi, readRDS)) %>% select(-fi)
+
+to = ti %>% mutate(block = map(r, 'block'), pair=map(r, 'pair')) %>%
+    select(-r)
+fo = glue("{dirw}/01.rds")
+saveRDS(to, fo)
 
 ti1 = ti %>% mutate(block=map(r, 'block')) %>%
     select(qry, tgt, block) %>% unnest(block) %>%
@@ -94,3 +105,88 @@ fo1 = glue("{dirw}/03.block.tsv")
 fo2 = glue("{dirw}/03.gene_pair.tsv")
 write_tsv(to1, fo1)
 write_tsv(to2, fo2)
+#}}}
+
+#{{{ make xref table and plot composition
+fi = glue("{dirw}/01.rds")
+ti = readRDS(fi)
+ti1 = ti %>% select(qry, tgt, block) %>% unnest(block) %>%
+    filter(length >= 10, homo1 >= .5)
+ti2 = ti %>% select(qry, tgt, pair) %>% unnest(pair) %>%
+    select(qry,tgt,bid,gid1,gid2,ks,order1=cidx1,order2=cidx2) %>%
+    inner_join(ti1 %>% select(qry,tgt,bid), by=c('qry','tgt','bid'))
+ti1 %>% count(qry, tgt)
+ti2 %>% count(qry, tgt)
+
+tg1 = t_gs %>% filter(g=='R11') %>% select(gid1=gid, size1=size.exon)
+tg2 = t_gs %>% filter(g=='R44') %>% select(gid2=gid, size2=size.exon)
+tp = ti2 %>% filter(qry=='R11', tgt=='R44') %>% distinct(gid1, gid2)
+make_xref <- function(tp, gs1, gs2) {
+    #{{{
+    tp = tp %>% distinct(gid1, gid2)
+    tg1 = gs1 %>% select(gid1=gid, size1=size.exon)
+    tg2 = gs2 %>% select(gid2=gid, size2=size.exon)
+    gids1 = tp %>% count(gid1) %>% filter(n>1) %>% pull(gid1)
+    gids2 = tp %>% count(gid2) %>% filter(n>1) %>% pull(gid2)
+    tp1 = tp %>% filter(gid1 %in% gids1) %>% mutate(type1='1-m')
+    tp2 = tp %>% filter(gid2 %in% gids2) %>% mutate(type2='1-m')
+    tp3 = tp %>%
+        left_join(tp1, by=c('gid1','gid2')) %>%
+        left_join(tp2, by=c('gid1','gid2')) %>%
+        replace_na(list(type1='1-1',type2='1-1')) %>%
+        mutate(type=ifelse(type1=='1-m', ifelse(type2=='1-m', 'm-m', '1-m'),
+                           ifelse(type2=='1-m', 'm-1', '1-1'))) %>%
+        inner_join(tg1, by='gid1') %>% 
+        inner_join(tg2, by='gid2') %>%
+        select(gid1, gid2, type, size1, size2)
+    tp3 %>% count(type)
+    tp3a = tg1 %>% filter(!gid1 %in% tp3$gid1) %>% mutate(type='1-0')
+    tp3b = tg2 %>% filter(!gid2 %in% tp3$gid2) %>% mutate(type='0-1')
+    tp4 = tp3 %>% bind_rows(tp3a) %>% bind_rows(tp3b)
+    tp4
+    #}}}
+}
+
+tg0 = t_gs %>% group_by(g) %>% nest() %>% ungroup() %>% rename(gs=data)
+tc = ti2 %>% group_by(qry,tgt) %>% nest() %>% ungroup() %>%
+    inner_join(tg0, by=c('qry'='g')) %>% rename(gs1=gs) %>%
+    inner_join(tg0, by=c('tgt'='g')) %>% rename(gs2=gs) %>%
+    mutate(xref = pmap(list(data, gs1, gs2), make_xref)) %>%
+    select(qry, tgt, xref)
+
+fo = glue("{dirw}/10.xref.rds")
+saveRDS(tc, fo)
+
+types = c('1-1','1-m m-1 m-m','1-0','0-1')
+tc2 = tc %>% unnest(xref) %>%
+    mutate(size.diff=abs(size1-size2)) %>%
+    mutate(type=ifelse(type %in% c('1-m','m-1','m-m'), '1-m m-1 m-m', type)) %>%
+    mutate(type = factor(type, levels=types)) %>%
+    mutate(size.diff.bin=cut(size.diff, c(0,10,50,100,Inf),
+        labels=c("<10",'10,50','50,100','>100'), include.lowest=T))
+tc2s = tc2 %>%
+    distinct(type, size.diff.bin) %>%
+    mutate(lab = ifelse(type=='1-1', glue("{type} ({size.diff.bin})"), as.character(type))) %>%
+    arrange(type, size.diff.bin) %>%
+    mutate(lab = as_factor(lab))
+tp = tc2 %>% inner_join(cmps, by=c('qry','tgt')) %>%
+    inner_join(tc2s, by=c('type','size.diff.bin')) %>%
+    count(cmp,lab) %>%
+    rename(tag1=cmp, tag2=lab)
+cols7 = c(brewer.pal(4,'Pastel2'), pal_aaas()(3))
+cols7 = c(brewer.pal(4,'Reds')[4:1], pal_simpsons()(1), brewer.pal(3,'Paired')[2:1])
+
+p = cmp_cnt1(tp, ytext=T, ypos='right', legend.title='', fills=cols7,
+             legend.pos='top.left', legend.dir='v') +
+    o_margin(.1,.3,.1,.3)
+fo = glue("{dirw}/15.gene.xref.pdf")
+ggsave(p, file=fo, width=6, height=6)
+p = cmp_prop1(tp, ytext=T, ypos='right', legend.title='', fills=cols7,
+             legend.pos='none', legend.dir='v') +
+    o_margin(.1,.3,.1,.3)
+fo = glue("{dirw}/15.gene.xref.p.pdf")
+ggsave(p, file=fo, width=6, height=6)
+#}}}
+
+
+
