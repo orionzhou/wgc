@@ -6,6 +6,7 @@ dirp = '~/projects/wgc'
 dird = glue("{dirp}/data")
 dirr = glue("{dirp}/raw")
 dirg = '~/projects/s3/zhoup-genome'
+options(scipen = 10)
 #dirc = '/scratch.global/zhoux379/wgc'
 #gcfg = read_genome_conf()
 

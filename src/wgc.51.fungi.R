@@ -76,30 +76,73 @@ ggsave(p, filename=fo, width=12, height=6)
 #}}}
 
 #{{{ collect block/gene pair and write
+rcfg2tg <- function(rcfg) {
+    #{{{
+    rcfg$gene %>% arrange(chrom, start, end) %>%
+        mutate(idx = 1:n()) %>%
+        mutate(pos = (start+end)/2) %>%
+        group_by(chrom) %>% mutate(cidx = 1:n()) %>% ungroup() %>%
+        select(gid, tid, chrom, pos, srd, idx, cidx)
+    #}}}
+}
+split_str <- function(block1, block2, ks, sep="_") {
+    #{{{
+    ks = str_replace(ks, "^_", "") 
+    tibble(
+           order1 = as.integer(str_split(block1, sep)[[1]]),
+           order2 = as.integer(str_split(block2, sep)[[1]]),
+           ks = as.numeric(str_split(ks, sep)[[1]])
+           )
+    #}}}
+}
 ti = cmps %>%
-    mutate(fi= glue("{diri}/{qry}-{tgt}/wgdi/20.rds")) %>%
-    mutate(r = map(fi, readRDS)) %>% select(-fi)
-
-to = ti %>% mutate(block = map(r, 'block'), pair=map(r, 'pair')) %>%
+    mutate(qcfg = glue("{diri}/{qry}-{tgt}/wgdi/00.q.rds")) %>%
+    mutate(tcfg = glue("{diri}/{qry}-{tgt}/wgdi/00.t.rds")) %>%
+    mutate(fb= glue("{diri}/{qry}-{tgt}/wgdi/14.block.csv")) %>%
+    mutate(fk= glue("{diri}/{qry}-{tgt}/wgdi/13.ks.tsv")) %>%
+    mutate(qcfg = map(qcfg, readRDS)) %>%
+    mutate(tcfg = map(tcfg, readRDS)) %>%
+    mutate(rb = map(fb, read_csv, col_names=T)) %>%
+    mutate(rk = map(fk, read_tsv, col_names=T)) %>%
+    select(-fb, -fk)
+wgdi_post <- function(tb0, tk0, qcfg, tcfg, min_len=15, min_homo1=.75) {
+    #{{{
+    tg1 = rcfg2tg(qcfg)
+    tg2 = rcfg2tg(tcfg)
+    tb = tb0 %>% rename(bid = id, chrom1=chr1, chrom2=chr2)
+    tk = tk0 %>% rename(tid1=id1, tid2=id2)
+    block = tb %>% select(-block1, -block2, -ks) %>%
+        filter(length >= min_len) %>% mutate(primary=homo1>=min_homo1)
+    tb2 = tb %>% select(bid, block1, block2, ks) %>%
+        mutate(data = pmap(list(block1, block2, ks), split_str, sep='_')) %>%
+        select(bid, data) %>% unnest(data)
+    tb3 = tb2 %>% rename(cidx1=order1,cidx2=order2) %>%
+        inner_join(block %>% select(bid, chrom1, chrom2, primary), by='bid') %>%
+        inner_join(tg1 %>% select(gid1=gid,tid1=tid,chrom1=chrom,idx1=idx,cidx1=cidx), by=c('chrom1','cidx1')) %>%
+        inner_join(tg2 %>% select(gid2=gid,tid2=tid,chrom2=chrom,idx2=idx,cidx2=cidx), by=c('chrom2','cidx2')) %>%
+        arrange(bid, idx1) %>%
+        left_join(tk, by=c("tid1",'tid2')) %>%
+        select(bid,chrom1,chrom2,cidx1,cidx2,gid1,gid2,tid1,tid2,primary,
+            ka.NG86=ka_NG86, ks.NG86=ks_NG86,
+            ka.YN00=ka_YN00, ks.YN00=ks_YN00)
+    list(block=block, pair=tb3)
+    #}}}
+}
+to = ti %>%
+    mutate(r = pmap(list(rb, rk, qcfg, tcfg), wgdi_post)) %>%
+    mutate(block = map(r, 'block'), pair=map(r, 'pair')) %>%
     select(-r)
 fo = glue("{dirw}/01.rds")
 saveRDS(to, fo)
 
-ti1 = ti %>% mutate(block=map(r, 'block')) %>%
-    select(qry, tgt, block) %>% unnest(block) %>%
-    filter(length >= 10, homo1 >= .5)
-ti2 = ti %>% mutate(pair=map(r, 'pair')) %>%
-    select(qry, tgt, pair) %>% unnest(pair) %>%
-    select(qry,tgt,bid,gid1,gid2,ks,order1=cidx1,order2=cidx2) %>%
-    inner_join(ti1 %>% select(qry,tgt,bid), by=c('qry','tgt','bid'))
-ti1 %>% count(qry, tgt)
-ti2 %>% count(qry, tgt)
+ti1 = to %>% select(cmp, cmp, block) %>% unnest(block)
+ti2 = to %>% select(cmp, pair) %>% unnest(pair)
+ti1 %>% count(cmp)
+ti2 %>% count(cmp)
 
-
-to1 = ti1 %>%
-    rename(query=qry,target=tgt,block=bid)
-to2 = ti2 %>%
-    rename(query=qry,target=tgt,block=bid,gene1=gid1,gene2=gid2)
+to1 = ti1 %>% rename(comparison=cmp,block=bid)
+to2 = ti2 %>% rename(comparison=cmp,block=bid,
+    gene1=gid1,gene2=gid2, rna1=tid1,rna2=tid2, order1=cidx1, order2=cidx2)
 
 fo1 = glue("{dirw}/03.block.tsv")
 fo2 = glue("{dirw}/03.gene_pair.tsv")
